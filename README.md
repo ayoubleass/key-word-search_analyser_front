@@ -25,15 +25,13 @@ This will install all the necessary dependencies, including React, Vite, and oth
 Once the dependencies are installed, you can start the app with the following command:
 
 bash
-Copier le code
-npm run dev
-This will start the development server, and your app will be accessible at http://localhost:3000 (or another port if 3000 is already in use).
+    npm run dev
+    This will start the development server, and your app will be accessible at http://localhost:3000 (or another port if 3000 is already in use).
 
 3. Build for Production (Optional)
 If you want to build the app for production, run:
 
 bash
-Copier le code
 npm run build
 This will create an optimized build of your app in the dist/ directory.
 
@@ -41,9 +39,8 @@ This will create an optimized build of your app in the dist/ directory.
 To preview the production build locally, use the following command:
 
 bash
-Copier le code
-npm run preview
-This will serve your production build at http://localhost:5000 by default.
+    npm run preview
+    This will serve your production build at http://localhost:5000 by default.
 
 Troubleshooting
 If you encounter issues during setup or running the app, try the following:
@@ -59,7 +56,6 @@ Vite Documentation
 This README provides all the necessary instructions for setting up and running the app, as well as building it for production.
 
 markdown
-Copier le code
 
 ### Explanation:
 1. **Project Overview**: Describes the purpose and tools used, i.e., React and Vite.

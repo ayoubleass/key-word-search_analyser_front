@@ -5,6 +5,7 @@ import { useState } from 'react';
 import ProjectForm from './components/ProjectForm';
 import NavBar from './components/NavBar';
 import { useMainContext } from './context/MainContext';
+import Circle from './components/Circle';
 
 
 export default function LandingPage()  {
@@ -56,6 +57,8 @@ export default function LandingPage()  {
         <header className='bg-[#111569] z-50 w-[100%] relative pb-10 opacity-0.5 transition-width duration-500 ease-in-out'>
             <NavBar links={navBarLinks}/>
             {renderContent()}
+            <Circle/>
+
             <div className="area w-screen z-[-1] h-screen opacity-0.5" >
                 <ul className="circles z-0">
                         <li></li>
