@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useRef } from 'react';
 
 const MainContext = createContext();
 
@@ -13,7 +13,8 @@ export const MainContextProvider = ({ children }) => {
     const [showProjectForm, setShowProjectForm] = useState(false);
      const [flashMessage, setFlashMessage] = useState(null);
     const [messageType, setMessageType] = useState('');
-
+    const [project, setProject] = useState({});
+    //const [results, setResults] = useState([]);
     const value = {
         showForm,
         setShowForm,
@@ -27,6 +28,8 @@ export const MainContextProvider = ({ children }) => {
         setFlashMessage,
         messageType,
         setMessageType,
+        project,
+        setProject,
     };
     return <MainContext.Provider value={value}>{children}</MainContext.Provider>;
 }

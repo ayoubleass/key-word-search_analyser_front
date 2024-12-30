@@ -1,37 +1,51 @@
 import './assets/css/main.css';
-import './assets/css/LandingPage.css';
+import './assets/css/landingPage.css';
 import Form from './components/Form';
-import { useState } from 'react';
 import ProjectForm from './components/ProjectForm';
 import NavBar from './components/NavBar';
 import { useMainContext } from './context/MainContext';
-import Circle from './components/Circle';
+import Aboutus from './components/Aboutus';
+import Footer from './components/Footer';
+import { useNavigate, useLocation } from 'react-router-dom';
+import FlashMessage from './components/FlashMessage';
+import { useEffect, useState } from 'react';
 
 
 export default function LandingPage()  {
     const {
         showForm,
         setShowForm,
+        token,
         setToken,
         inProcess,
         setInProcess,
         showProjectForm,
-        setShowProjectForm
+        setShowProjectForm,
+        flashMessage,
+        messageType,
+        setFlashMessage,
+        
     } = useMainContext();
 
-    const navBarLinks = [
-        {
-            name : showForm ? '' :'Connexion',
-            icon : '',
-            action : () =>  setShowForm(true),
-            cssClasses : showForm ?  'opacity-0' : 'font-bold opacity-1'  
-        },
-    ];
+    const [state, setState] = useState('login');
+
+    const queryParameters = new URLSearchParams(window.location.search);
+
+    useEffect(() => {
+        if(flashMessage){
+            setTimeout(() => {
+                setFlashMessage(null);  
+            }, 2000);
+        }
+        if (queryParameters.get('id') && queryParameters.get('token')) {
+            setState('resetPassword');
+            setShowForm(true);
+        }
+    }, [flashMessage])
+
     const renderContent = () => {
         if (showForm) {
-            return <div className="w-2/6 m-auto flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 rounded-md">
-                <Form sharedStates={[setToken, inProcess, setInProcess]} />;
-            </div>
+            return <Form myState={state} />;
         }
         else if (!showForm && !showProjectForm){
             return (
@@ -40,7 +54,7 @@ export default function LandingPage()  {
                 Start optimizing your SEO efforts today with KeywordSearcherAnalyser and take your rankings to the next level!
                 </p>
                 <button 
-                className="w-[20%] py-3 px-6 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-300"
+                className="w-[20%] py-3 px-6 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-300 sm:width[50%]"
                 onClick={() => setShowProjectForm(true)}
                 >
                 Start now
@@ -52,13 +66,13 @@ export default function LandingPage()  {
             return <ProjectForm sharedStates={[setToken, inProcess, setInProcess]} />
         }
     }
-
-    return (<>       
-        <header className='bg-[#111569] z-50 w-[100%] relative pb-10 opacity-0.5 transition-width duration-500 ease-in-out'>
-            <NavBar links={navBarLinks}/>
+    
+    const headerCss= 'h-screen bg-[#111569] z-50 w-[100%] relative pb-10 opacity-0.5 transition-width duration-500 ease-in-out';
+    return (<>
+        {flashMessage ? <FlashMessage message={flashMessage} type={messageType}/> : ''}      
+        <header className={headerCss}>
+            <NavBar/>
             {renderContent()}
-            <Circle/>
-
             <div className="area w-screen z-[-1] h-screen opacity-0.5" >
                 <ul className="circles z-0">
                         <li></li>
@@ -74,5 +88,7 @@ export default function LandingPage()  {
                 </ul>
             </div >
         </header>
+        <Aboutus/>
+        <Footer/>
     </>)
 } 

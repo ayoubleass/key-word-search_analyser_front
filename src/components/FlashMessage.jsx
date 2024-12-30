@@ -10,8 +10,10 @@ const FlashMessage = ({ message, type }) => {
         messageClasses += " bg-blue-100 text-blue-800";
     }
     return (
-        <div className={`text-center ${messageClasses} max-w-md mx-auto mt-4`}>
-            {message}
+        <div className={`w-full ${messageClasses}`}>
+            <div className={`text-center  m-auto`}>
+                {message}
+            </div>
         </div>
     );
 };
