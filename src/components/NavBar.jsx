@@ -1,6 +1,6 @@
 import { useMainContext } from '../context/MainContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import image from '../assets/images/image.webp'
 
 export default function NavBar ()  {
     const navigate = useNavigate();
@@ -38,7 +38,7 @@ export default function NavBar ()  {
     return (<nav className='px-20 h-[15vh] flex justify-between	items-center text-white'>
                 <div className='text-white'>
                 { !showForm ? 
-                        <h1 className='cursor-pointer'>Keyword Searcher Analyser</h1>
+                        <img src={image}/>
                         : ''
                     } 
                 </div>

@@ -14,11 +14,7 @@ const formInputs = [
             name : 'description',
             type : 'text'
         },
-        {
-            label : 'Project Domain',
-            name : 'url',
-            type : 'text'
-        }
+  
 ]
 
 export default function ProjectForm (){
@@ -46,18 +42,14 @@ export default function ProjectForm (){
         const formData = new FormData(form);
         const data = {
           name : formData.get('name'),
-          url : formData.get('url'),
           description: formData.get('description')
         };
         const fields  = ['url', 'name', 'descriptio'];
-        const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
-        const isValidUrl = (str) => urlRegex.test(str);
+        /*const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+        const isValidUrl = (str) => urlRegex.test(str);*/
         for(const[key, value] of Object.entries(data)) {
           if (fields.includes(key) && !value || value === '') {
             errors[key] = 'This field is required';
-          }
-          if(key == fields[0] && !isValidUrl(value)){
-            errors[key] = 'This field must be a valid url';
           }
         }
         if(Object.entries(errors).length > 0){
