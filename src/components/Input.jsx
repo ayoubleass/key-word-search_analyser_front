@@ -15,15 +15,15 @@ const Input = ({ index, value, handleChange, onAdd, onRemove, isLast, disabled }
       value={value}
       onChange={handleChange}
       disabled={disabled}
-      placeholder="Saisir un mot-clé"
-      className="w-full bg-gray-900/50 border border-gray-800 rounded-lg px-4 py-3 h-10
+      placeholder="Please enter keyword"
+      className="w-full text-gray-900 border border-gray-800 rounded-lg px-4 py-3 h-10
                  text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 
                  focus:border-transparent outline-none transition-all duration-200
-                 backdrop-blur-sm"
+                 backdrop-blur-smi"
     />
-     <span className="info absolute right-12 top-5 -translate-y-1/2 text-gray-400 cursor-pointer z-10">
+     <span className="info absolute right-12 top-5 -translate-y-1/2 text-gray-500 cursor-pointer z-50">
                 ?
-                <span className="tooltip absolute  mt-2 h-10 w-64 bg-gray-800 text-white text-sm rounded-md shadow-lg p-2 hidden">
+                <span className="tooltip absolute  mt-2 h-15 w-64 bg-gray-900 text-white text-sm rounded-md shadow-lg p-2 hidden z-50">
                   Saisissez le mot clé plus localité ici.
                 </span>
       </span>

@@ -4,11 +4,12 @@ import Form from './components/Form';
 import ProjectForm from './components/ProjectForm';
 import NavBar from './components/NavBar';
 import { useMainContext } from './context/MainContext';
-import Aboutus from './components/Aboutus';
+import FeatureSection from './components/FeatureSection';
 import Footer from './components/Footer';
-import { useNavigate, useLocation } from 'react-router-dom';
 import FlashMessage from './components/FlashMessage';
 import { useEffect, useState } from 'react';
+import { BiRightArrow } from 'react-icons/bi';
+import { ArrowRight } from 'lucide-react';
 
 
 export default function LandingPage()  {
@@ -49,17 +50,28 @@ export default function LandingPage()  {
         }
         else if (!showForm && !showProjectForm){
             return (
-            <div className="flex flex-col p-10 justify-center items-center m-auto w-8/12 h-[30vh] mt-40 font-bold text-white">
-                <p className="mb-10 text-3xl text-center">
-                Start optimizing your SEO efforts today with KeywordSearcherAnalyser and take your rankings to the next level!
-                </p>
-                <button 
-                className="w-[20%] py-3 px-6 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition duration-300 sm:width[50%]"
-                onClick={() => setShowProjectForm(true)}
-                >
-                Start now
-                </button>
-            </div>
+                <div className="mx-auto px-6 md:px-8 flex flex-col justify-center items-center min-h-[20vh] mt-20 md:mt-32">
+                <div className="max-w-2xl mx-auto text-center space-y-8">
+                  <h1 className="text-center text-2xl md:text-5xl lg:text-5xl font-extrabold text-white leading-tight w-full">
+                    Start optimizing your SEO efforts today with{' '}
+                  </h1>
+                  <p className='text-white text-center text-xl'>
+                  <span className="text-blue-400">KeywordSearcherAnalyser</span>{' '}
+                   and take your rankings to the next level!
+                  </p>
+
+                
+                  <button 
+                    onClick={() => setShowProjectForm(true)}
+                    className="inline-flex items-center px-8 py-4 text-sm md:text-lg font-semibold text-white bg-[#2e326d] rounded-lg hover:bg-[#16172d] transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    <ArrowRight  className='animate-pulse text-blue-500 w-6 h-6 mr-2' />
+                    Start Now
+                  </button>
+                </div>
+              </div>
+              
+              
             );
         }
         else {
@@ -67,7 +79,9 @@ export default function LandingPage()  {
         }
     }
     
-    const headerCss= 'h-screen bg-[#111569] z-50 w-[100%] relative pb-10 opacity-0.5 transition-width duration-500 ease-in-out';
+    const headerCss= 'h-screen bg-[#111569] z-50 w-[100%] relative pb-10 opacity-0.5 \
+    transition-width duration-500 ease-in-out bg-gradient-to-l from-custom-blue \
+    to-custom-dark bg-[length:200%_100%] animate-gradient-x"';
     return (<>
         {flashMessage ? <FlashMessage message={flashMessage} type={messageType}/> : ''}      
         <header className={headerCss}>
@@ -88,7 +102,7 @@ export default function LandingPage()  {
                 </ul>
             </div >
         </header>
-        <Aboutus/>
+        <FeatureSection/>
         <Footer/>
     </>)
 } 

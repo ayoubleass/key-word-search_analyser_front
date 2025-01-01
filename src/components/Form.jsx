@@ -5,6 +5,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 const STATES = ['login', 'forgotPassword', 'signUp', 'resetPassword'];
 const BASEURL = "http://localhost:3000/api/v1";
+
+
 const formInputs = {
     'signUp' : [
         {
@@ -97,7 +99,9 @@ const Form = ({myState = 'login'}) => {
       setInProcess,
       setToken,
       token,
-      inProcess
+      inProcess,
+      userData,
+      setUserData
     } = useMainContext();
     const [state, setStates] = useState(myState);
     const [oldState, setOldState] = useState('');
@@ -105,14 +109,9 @@ const Form = ({myState = 'login'}) => {
     const [error, setError] = useState([]);
 
 
-    const inputClass = 'appearance-none rounded-lg relative block w-full \
-        pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900\
-        focus:outline-none focus:ring-2 focus:ring-[#111569] focus:border-[#111569] focus:z-10 sm:text-sm' 
-
     const handleLogin = async (e) => {
-        const form = e.target;
-        const formData = new FormData(form);
-        const encodedData = btoa(`${formData.get('email')}:${formData.get('password')}`);
+        console.log(userData);
+        const encodedData = btoa(`${userData.email}:${userData.password}`);
         try {
             const res = await fetch("http://localhost:3000/api/v1/login", {
                 method : 'POST',
@@ -127,9 +126,16 @@ const Form = ({myState = 'login'}) => {
                 setFlashMessage(`Welcome ${data?.userData?.name}`);
                 setMessageType('success');
                 setShowForm(false);
+                setError('');
                 setErrors({});
             }else{
-                setErrors(data.errors || data.error || '');
+                if(data.errors && Object.entries(data.errors).length > 0) {
+                    setErrors(data.errors);
+                    setError('')
+                }else {
+                    setError(data.error);
+                }
+
             }
             setInProcess(false);
         }catch (err){
@@ -176,7 +182,7 @@ const Form = ({myState = 'login'}) => {
                 setMessageType('success')
                 setErrors({});
             }else{
-                setErrors(data.error);
+                setError(data.error);
             }
             setInProcess(false);
         }catch (err) {
@@ -192,7 +198,6 @@ const Form = ({myState = 'login'}) => {
         const name = formData.get('name');
         const phoneNumber = formData.get('phoneNumber');
         const password = formData.get('password');
-
         try {
             const res = await fetch(`${BASEURL}/signUp`, {
                 method : 'POST',
@@ -202,11 +207,10 @@ const Form = ({myState = 'login'}) => {
                 },
                 body : JSON.stringify({email, password, name, phoneNumber}),
             });
-            const data = await res.json();
+            const data = await res.json(); 
             if (res.ok) {
                 setFlashMessage('Your account has been created');
                 setMessageType('success')
-                setPassword('');
                 setStates('login');
                 setErrors({});
                 setError('');
@@ -222,6 +226,7 @@ const Form = ({myState = 'login'}) => {
             setInProcess(false);
         }catch (err) {
             console.log(err);
+            setInProcess(false);
         }
     } 
 
@@ -268,91 +273,131 @@ const Form = ({myState = 'login'}) => {
     }
     useEffect(() => {
         if(state == STATES[3] && !queryParameters.get('id') && state == STATES[3] && !queryParameters.get('token')) {
-            setStates('login');
+            setStates(STATES[0]);
         }
     })
 
-    return (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50  mb-3 min-h-screen py-10">
-            <span className='cursor-pointer ml-20 text-white font-bold ' onClick={() => setShowForm(false)}><i className='fa-solid fa-arrow-left'></i> Back</span>
-           <div className="lg:w-2/6  sm:w-1/5  md:w-1/5 m-auto bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 rounded-md relative h-[100%]">
-           {error ? <div className='text-center text-red-500'>
-                {error}
-            </div> : ''}
-            <div className="max-w-md w-full space-y-8">
-                <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-                {formText[state]?.title}
+
+const inputClass = `appearance-none rounded-xl relative block w-full 
+    pl-12 pr-4 py-4 border border-gray-200 placeholder-gray-400 text-gray-900
+    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+    focus:z-10 sm:text-sm transition-all duration-200 bg-white/50 backdrop-blur-sm`
+
+// Calculate additional height based on errors
+const hasErrors = Object.keys(errors).length > 0 || error;
+const formContainerClass = `lg:w-2/6 sm:w-1/2 md:w-1/2 m-auto bg-white/90 backdrop-blur-md 
+    py-12 px-8 rounded-2xl relative shadow-xl transition-all duration-300 ease-in-out 
+    ${hasErrors ? 'max-h-[120vh]' : 'max-h-[90vh]'}`
+
+return (
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 mb-3 min-h-screen py-10 overflow-y-scroll	">
+        <div className='cursor-pointer lg:ml-20 sm:mb-5 text-white font-bold hover:text-blue-400 transition-colors duration-200' 
+             onClick={() => setShowForm(false)}>
+            <i className='fa-solid fa-arrow-left mr-2'></i> Back
+        </div>
+        <div className={formContainerClass}>
+            <div className={`max-w-md w-full mx-auto space-y-6 ${hasErrors ? 'mt-4' : ''}`}>
+                <h2 className="mt-2 text-center text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                    {formText[state]?.title}
                 </h2>
                 <p className="mt-2 text-center text-sm text-gray-600">
-                {formText[state]?.subTitle}
+                    {formText[state]?.subTitle}
                 </p>
-            </div>  
-            <form className="mt-8 space-y-6 mb-5 h-[100%] " onSubmit={handleForm}>
-                <div className="rounded-md shadow-sm space-y-4">
-                    {formInputs[state].map((f, index) => {
-                        return (
-                            <div key={index} className="relative">
-                                <label htmlFor="email" className="sr-only">{f.label}</label>
-                                <i className="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                <input
-                                    type={f.type}
-                                    name={f.name}
-                                    id={index} 
-                                    className={Object.entries(errors || {}).length > 0  && errors[f.name]?.length > 0 ? inputClass.concat('border-2 border-rose-600 placeholder-red-500 relative  text-red-500') : inputClass}
-                                    placeholder={Object.entries(errors).length > 0  &&  errors[f.name]?.length > 0  ? errors[f.name][0] : f.label}
-                                    disabled={inProcess}
-                                    onClick={() => setErrors({})}
-                                />
-                            </div>
-                        )
-                    })}
+            </div>
+
+            <form className={`mt-8 space-y-6 mb-5 transition-all duration-300 
+                            ${hasErrors ? 'space-y-7' : 'space-y-6'}`} 
+                  onSubmit={handleForm}>
+                <div className="rounded-md space-y-5">
+                    {formInputs[state].map((f, index) => (
+                        <div key={index} className="relative group">
+                            <label htmlFor="email" className="sr-only">{f.label}</label>
+                            <i className="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 
+                                      group-focus-within:text-blue-500 transition-colors duration-200"></i>
+                            <input
+                                type={f.type}
+                                name={f.name}
+                                id={index}
+                                className={
+                                    Object.entries(errors || {}).length > 0 && errors[f.name]?.length > 0 
+                                    ? `${inputClass} border-red-300 bg-red-50 text-red-900 placeholder-red-400`
+                                    : inputClass
+                                }
+                                placeholder={f.label}
+                                disabled={inProcess}
+                                onChange={ (e) => {
+                                    setUserData((prev) => (
+                                        {
+                                          ...prev,
+                                          [f.name] : e.target.value
+                                        }))
+                                    }
+                                }
+                                onClick={() => setErrors({})}
+                            />
+                            {errors[f.name] && (
+                                <p className="text-red-500 text-xs mt-1 ml-1 transition-all duration-300">
+                                    {errors[f.name][0]}
+                                </p>
+                            )}
+                        </div>
+                    ))}
                 </div>
-    
+
                 <div className="flex items-center justify-between">
-                {state === 'login' ? <div className="flex items-center">
-                    <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 text-[#111569] focus:ring-[#111569] border-gray-300 rounded"
-                    />
-                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                    Remember me
-                    </label>
-                </div> : ''}
-                    <div className="text-sm" onClick={() => { 
-                            setOldState(state)
-                            setErrors({})
-                            setStates('forgotPassword')
+                    {state === 'login' && (
+                        <div className="flex items-center">
+                            <input
+                                id="remember-me"
+                                name="remember-me"
+                                type="checkbox"
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                                Remember me
+                            </label>
+                        </div>
+                    )}
+                    <div className="text-sm" onClick={() => {
+                        setOldState(state);
+                        setErrors({});
+                        setStates(STATES[1]);
                     }}>
-                        <a href="#" className="font-medium text-[#111569] hover:text-opacity-80">
+                        <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
                             {state !== STATES[1] && state !== STATES[3] ? 'Forgot your password?' : ''}
                         </a>
-                    </div> 
+                    </div>
                 </div>
-                    
-                <div>
-                <button
-                    type="submit"
-                    className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-[#111569] hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#111569]"
-                >
-                    {formText[state]?.button}
-                    <i className="fas fa-arrow-right ml-2"></i>
-                </button>
 
-                 { state !== STATES[3] ? <div className="text-sm mt-2" onClick={() => { 
+                <div>
+                    <button
+                        type="submit"
+                        className="group relative w-full flex justify-center py-3 px-4 border border-transparent 
+                                 text-sm font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-800 
+                                 hover:from-blue-700 hover:to-blue-900 focus:outline-none focus:ring-2 
+                                 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 
+                                 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={inProcess}
+                    >
+                        {formText[state]?.button}
+                        <i className="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"></i>
+                    </button>
+
+                    {state !== STATES[3] && (
+                        <div className="text-sm mt-4 text-center" onClick={() => {
                             setOldState(state);
                             setErrors({});
-                            setStates( state === 'login' ? 'signUp' : 'login');
-                    }}>
-                        <a href="#" className="font-medium text-[#111569] hover:text-opacity-80">
-                            {state !== 'signUp' ? 'signUp' : 'SignIn'}
-                        </a>
-                    </div> : ''}
+                            setStates(state === STATES[0] ? 'signUp' : STATES[0]);
+                        }}>
+                            <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                                {state !== 'signUp' ? 'Sign Up' : 'Sign In'}
+                            </a>
+                        </div>
+                    )}
                 </div>
             </form>
-            </div>
         </div>
+    </div>
     );
 };
 export default Form;

@@ -7,8 +7,8 @@ const LanguageSelector = ({
   selectedCountry, 
   onLanguageChange, 
   onCountryChange, 
-  websiteUrl, 
-  onWebsiteChange 
+  onWebsiteChange ,
+  project
 }) => {
   // Get unique list of languages from languageData
   const languages = Object.keys(languageData).sort();
@@ -19,17 +19,22 @@ const LanguageSelector = ({
     : [];
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-full text-black">
       {/* Website URL input */}
       <div className="relative w-full group">
         <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-400 transition-colors z-10" />
         <input
           type="text"
-          placeholder="URL du site"
-          value={websiteUrl}
-          onChange={(e) => onWebsiteChange(e.target.value)}
-          className="w-full bg-gray-800/50 border border-gray-700 rounded-lg pl-12 pr-4 py-3 h-10
-                    text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 
+          placeholder="website URL"
+          value={project.url}
+          onChange={(e) => {
+            onWebsiteChange({
+              ...project,
+              url : e.target.value
+            })
+          }}
+          className="w-full border text-gray-900 	border-gray-700 rounded-lg pl-12 pr-4 py-3 h-10
+                    text-gray-100  focus:ring-2 focus:ring-blue-500 
                     focus:border-transparent outline-none transition-all duration-200
                     backdrop-blur-sm"
         />
@@ -43,8 +48,8 @@ const LanguageSelector = ({
           <select
             value={selectedLanguage}
             onChange={(e) => onLanguageChange(e.target.value)}
-            className="w-full bg-gray-800/50 border border-gray-700 rounded-lg pl-12 pr-4  h-10
-                      text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 
+            className="w-full border text-gray-900 border-gray-700 rounded-lg pl-12 pr-4  h-10
+                      text-gray-100 placeholder-gray-800 text-black  focus:ring-2 focus:ring-blue-500 
                       focus:border-transparent outline-none transition-all duration-200
                       backdrop-blur-sm appearance-none"
           >
@@ -64,7 +69,7 @@ const LanguageSelector = ({
             value={selectedCountry ? JSON.stringify(selectedCountry) : ""}
             onChange={(e) => onCountryChange(JSON.parse(e.target.value))}
             disabled={!selectedLanguage}
-            className="w-full bg-gray-800/50 border border-gray-700 rounded-lg pl-12 pr-4 h-10
+            className="w-full border text-gray-500 border-gray-700 rounded-lg pl-12 pr-4 h-10
                       text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 
                       focus:border-transparent outline-none transition-all duration-200
                       backdrop-blur-sm appearance-none disabled:opacity-50"
@@ -81,7 +86,7 @@ const LanguageSelector = ({
 
       {/* Display selected location code */}
       {selectedCountry && (
-        <div className="text-sm text-gray-400">
+        <div className="text-sm text-gray-200">
           Location Code: {selectedCountry.code}
         </div>
       )}
