@@ -35,6 +35,7 @@ export default function SearchVolumeChart({monthlySearches}) {
 
   useEffect(() => {
     const newData  =  monthlySearches.map((f) => {  
+      console.log(f.month);
       const data = {}
       data[monthsOfYear[f.month - 1]] = f.search_volume
       return data

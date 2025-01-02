@@ -110,7 +110,6 @@ const Form = ({myState = 'login'}) => {
 
 
     const handleLogin = async (e) => {
-        console.log(userData);
         const encodedData = btoa(`${userData.email}:${userData.password}`);
         try {
             const res = await fetch("http://localhost:3000/api/v1/login", {
@@ -123,6 +122,7 @@ const Form = ({myState = 'login'}) => {
             const data = await res.json();
             if (res.ok) {
                 setToken(data.token);
+                setUserData(data.userData);
                 setFlashMessage(`Welcome ${data?.userData?.name}`);
                 setMessageType('success');
                 setShowForm(false);
@@ -135,7 +135,6 @@ const Form = ({myState = 'login'}) => {
                 }else {
                     setError(data.error);
                 }
-
             }
             setInProcess(false);
         }catch (err){
@@ -163,10 +162,11 @@ const Form = ({myState = 'login'}) => {
         }
     }
 
-    const handleForgotPassword = async (e) => { 
-        const form = e.target;
-        const formData = new FormData(form);
-        const email = formData.get('email');
+    const handleForgotPassword = async (e) => {
+        const email = userData.email
+        const errors = {
+            email : ''
+        }
         try {
             const res = await fetch(`${BASEURL}/forgotPassword`, {
                 method : 'POST',
@@ -180,9 +180,10 @@ const Form = ({myState = 'login'}) => {
             if (res.ok) {
                 setFlashMessage(data?.message);
                 setMessageType('success')
-                setErrors({});
+                setErrors();
             }else{
-                setError(data.error);
+                errors.email = [data.error];
+                setErrors(errors);
             }
             setInProcess(false);
         }catch (err) {
@@ -296,6 +297,13 @@ return (
             <i className='fa-solid fa-arrow-left mr-2'></i> Back
         </div>
         <div className={formContainerClass}>
+            {error && (
+                <div className="bg-[size:200%_100%] animate-gradient-x">
+                <p className="text-red-500 text-center text-sm mt-1 ml-1 transition-all duration-300">
+                    {error}
+                </p>
+                </div>
+            )}
             <div className={`max-w-md w-full mx-auto space-y-6 ${hasErrors ? 'mt-4' : ''}`}>
                 <h2 className="mt-2 text-center text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                     {formText[state]?.title}

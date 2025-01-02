@@ -4,8 +4,6 @@ import { ChevronUp, ChevronDown } from 'lucide-react';
 const SuggestionsList = ({ suggestions }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const maxVisibleSuggestions = 3;
-
-  // If no suggestions or invalid data, show no suggestions message
   if (!suggestions || !Array.isArray(suggestions) || suggestions.length <= 1) {
     return (
       <span className="text-gray-500 italic">
@@ -39,7 +37,7 @@ const SuggestionsList = ({ suggestions }) => {
                 ({suggestion?.searches}/mo)
               </span>
               <span className="text-xs text-gray-500">
-                ({suggestion?.competition > 40 ? "trés concurentiel" : suggestion.competition > 15 ? "concurentiel" : "non concurentiel"} {suggestion?.competition} KD)
+                ({suggestion?.competition > 40 ? "Hard" : suggestion.competition > 15 ? "Medium" : "Low"} {suggestion?.competition} KD)
               </span>
             </div>
           </li>

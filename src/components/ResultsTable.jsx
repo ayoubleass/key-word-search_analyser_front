@@ -4,7 +4,7 @@ import { AlertCircle, Eye } from 'lucide-react';
 import VisChart from "./VisCharts";
 
 const ResultsTable = ({ results, totalKeywords, level }) => {
-  const [showStats, setShowStats] = useState(0); // Track which keyword's stats are shown
+  const [showStats, setShowStats] = useState(0);
   const [item, setItem] = useState({});
   const competiton = ['Low' , 'Hard' , 'Medium'];
   if (!results?.length) {
@@ -97,7 +97,7 @@ const ResultsTable = ({ results, totalKeywords, level }) => {
                   </td>
 
                   <td className="px-6 py-4">
-                    <Eye className="cursor-pointer" onClick={() => {
+                    <Eye className={showStats === index ? "cursor-pointer text-green-500" : "cursor-pointer"} onClick={() => {
                       setShowStats(showStats === index ? null : index); // Toggle view for specific keyword
                       setItem(result);
                     }} />

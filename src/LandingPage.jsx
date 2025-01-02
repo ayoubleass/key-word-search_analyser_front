@@ -8,7 +8,6 @@ import FeatureSection from './components/FeatureSection';
 import Footer from './components/Footer';
 import FlashMessage from './components/FlashMessage';
 import { useEffect, useState } from 'react';
-import { BiRightArrow } from 'react-icons/bi';
 import { ArrowRight } from 'lucide-react';
 
 
@@ -42,7 +41,7 @@ export default function LandingPage()  {
             setState('resetPassword');
             setShowForm(true);
         }
-    }, [flashMessage])
+    }, [flashMessage]);
 
     const renderContent = () => {
         if (showForm) {

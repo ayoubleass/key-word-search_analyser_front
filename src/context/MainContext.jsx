@@ -15,11 +15,15 @@ export const MainContextProvider = ({ children }) => {
     const [flashMessage, setFlashMessage] = useState(null);
     const [messageType, setMessageType] = useState('');
     const [results, setResults] = useState([]);
+    const [stopSave, setStopSave] = useState(false);
     const [save, setSave] = useState([]);
     const [project, setProject] = useState({
       name : '',
       description: '',
-      url: ""
+      url: "",
+      locationCode : 0,
+      selectedLanguage : "",
+      selectedCountry : ""
     });
 
     const [userData, setUserData] = useState({
@@ -50,6 +54,8 @@ export const MainContextProvider = ({ children }) => {
         setSave,
         setUserData,
         userData,
+        setStopSave,
+        stopSave
     };
     return <MainContext.Provider value={value}>{children}</MainContext.Provider>;
 }

@@ -7,7 +7,7 @@ import { Menu, X } from 'lucide-react';
 export default function NavBar ()  {
     const navigate = useNavigate();
     const location = useLocation();
-    const {showForm, setShowForm, token, setToken} = useMainContext();
+    const {showForm, setShowForm, token, setToken, userData} = useMainContext();
     const [isOpen, setIsOpen] = useState(false);
      const links = [
         {
@@ -26,7 +26,7 @@ export default function NavBar ()  {
         {
             name : token  ? 'Projects' : '',
             icon : '',
-            action : () =>  navigate('/projects'),
+            action: () => navigate('/'.concat(`${userData.name}/projects`), { replace: true }),
             cssClasses : !token ?  'hidden' : 'opacity-1 cursor-pointer text-white'  
         },
         {
@@ -77,8 +77,8 @@ export default function NavBar ()  {
               aria-label="Toggle menu"
             >
               <div className="w-6 h-5 flex flex-col justify-between">
-                <span className={`block h-0.5 w-full bg-white transform transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
-                <span className={`block h-0.5 w-full bg-white transition-all duration-300 ${isMenuOpen ? 'opacity-0' : ''}`}></span>
+                <span className={`block h-0.5 w-full bg-white transform transition-all duration-300 ${isMenuOpen ? 'text-black rotate-45 translate-y-2' : ''}`}></span>
+                <span className={`block h-0.5 w-full bg-white transition-all duration-300 ${isMenuOpen ? 'text-black opacity-0' : ''}`}></span>
                 <span className={`block h-0.5 w-full bg-white transform transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
               </div>
             </button>
