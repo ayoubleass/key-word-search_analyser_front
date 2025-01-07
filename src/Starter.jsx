@@ -1,42 +1,34 @@
 import { useState, useContext, useEffect} from "react";
 import { useNavigate } from 'react-router-dom';
-import Input from "./components/Input";
-import axios from "axios";
 import { useMainContext } from './context/MainContext';
-
+import Input from "./components/Input";
+import LocationsInput from "./components/Locations";
+import FlashMessage from "./components/FlashMessage";
+import axios from "axios";
 import { 
   Sparkles,
   Loader2,
   User,
   KeyRound
 } from 'lucide-react';
-
-
 import LanguageSelector from "./components/LanguageComponents";
-import { PiPassword, PiPasswordBold } from "react-icons/pi";
+import { getCites, removeCityFromKeyword } from "./utils";
+
 
 export default function Starter() {
-  const [apiCredentials , setApiCredentials] = useState({
-    user : "",
-    password : ""
-  });
   const [keywords, setKeywords] = useState([""]);
   const [loading, setLoading] = useState(false);
-  const {project ,results , setProject, setResults , setShowProjectForm, stopeSave} = useMainContext();
+  const {project, results, setProject, setResults, setShowProjectForm, stopeSave, locations ,
+    setLocations, apiCredentials,
+    setApiCredentials, setMessageType,
+    setFlashMessage, flashMessage, messageType
+  } = useMainContext();
   const [error, setError] = useState('');
+  const [cities, setCities] = useState([]);  
   const router = useNavigate();
   const resultsMap = new Map();
 
 
-  console.log(results.filter((r) => {
-    if(!Object.keys(r).includes('updatedAt')) {
-      return r.keyword;
-    }
-  }));
-  
-  console.log('------------------------------------', results);
-  console.log('------------------------------------', project);
-    
   useEffect(() => {
     if (!project.name.length) {
         setShowProjectForm(true);
@@ -45,14 +37,33 @@ export default function Starter() {
     if(results.length > 0 ){
       setKeywords(results.map((r) => r.keyword))
     }
-  }, []);
-  
-  
+    const getContryCities = async ()=> {
+      if (project?.selectedCountry?.name) {
+        const countryCites = await getCites(project.selectedCountry.name) ;
+        setCities(countryCites);       
+      }
+    }
+    getContryCities();
+  }, [project?.selectedCountry?.name]);
+
+  const updateResultsMap = (results, keyFields) => {
+    results.forEach((data) => {
+      const keyword = data.keyword;
+      const updatedData = keyFields.reduce((acc, field) => {
+        acc[field] = data[field] || (field === 'search_volume' ? 0 : []);
+        console.log(acc);
+        return acc;
+      }, { keyword });
+      const existingData = resultsMap.get(keyword) || {};
+      resultsMap.set(keyword, { ...existingData, ...updatedData });
+    });
+  };
+
 
   const handleChange = (index) => (e) => {
-    const newKeywords = [...keywords];
-    newKeywords[index] = e.target.value.toLowerCase();
-    setKeywords(newKeywords);
+      const newKeywords = [...keywords];
+      newKeywords[index] = e.target.value.toLowerCase();
+      setKeywords(newKeywords);
   };
 
   const handleAddInput = (index) => {
@@ -71,61 +82,60 @@ export default function Starter() {
 
   const fetchKeywordsInput = async () => {
     setLoading(true);
-    const username = apiCredentials.user;
-    const password = apiCredentials.password ;
-    const post_array = [];
+    if(!apiCredentials.api_user || !apiCredentials.api_password) {
+      setError('API credentials are required to perform this action.');
+      setLoading(false);
+      return;
+    }
     if (keywords.length === 0 || (keywords.length === 1 && keywords[0] === '')) {
       setError("Keywords list cannot be empty. Please provide at least one valid keyword.");
       setLoading(false);
       return;
     }
-
-    if (!project.selectedLanguage || !project.selectedCountry.code) {
+    if (!project.selectedLanguage && !project.locationCode) {
       setError("Please ensure both language and country are selected.");
       setLoading(false);
       return;
     }
-
-
+    const username = apiCredentials.api_user;
+    const password = apiCredentials.api_password ;
+    const post_array = [];
+    const newKeyword = keywords.filter((key) => key.length > 0);
     post_array.push({
-      keywords: keywords,
+      keywords: newKeyword,
       language_name: project.selectedLanguage,
-      location_code: parseInt(project.selectedCountry.code),
+      location_code: parseInt(project.locationCode),
     });
+    
 
-    if(stopeSave) {
-      
-    }
 
-    // Add search volume to the result map
     const searchVolume = async () => {
+      /*'https://api.dataforseo.com/v3/keywords_data/clickstream_data/dataforseo_search_volume/live'*/
       try {
         const response = await axios({
           method: 'post',
-          url: 'https://api.dataforseo.com/v3/keywords_data/clickstream_data/dataforseo_search_volume/live',
+          url: 'https://api.dataforseo.com/v3/keywords_data/clickstream_data/bulk_search_volume/live',
           auth: { username, password },
           data: post_array,
           headers: { 'content-type': 'application/json' },
         });
 
         if (response.status === 200) {
-          const datas = response.data.tasks[0].result[0].items;
-          for (const data of datas) {
-            const { keyword, search_volume, monthly_searches } = data;
-            const existingData = resultsMap.get(keyword) || {};
-            resultsMap.set(keyword, { ...existingData, keyword, search_volume , monthly_searches });
-          }
-          //console.log("After search volume:", Array.from(results.entries())); 
+          const results = response.data.tasks[0].result[0].items;
+          updateResultsMap(results, ['search_volume', 'monthly_searches']);
         }
         else{
-          console.log("Somthing went wrong in API");
-          
+          console.log("Somthing went wrong"); 
         }
       } catch (error) {
-        console.error('Error fetching search volume:', error.response?.data || error.message);
+        setFlashMessage('Oups somthing went wrong please try again!!');
+        setMessageType('error');
+        console.error('Error fetching search volume:', error?.message);
       }
     };
     
+
+    /* get KEYWORD DIF  */
 
     const getKeywordDifficulty = async () => {
       try {
@@ -138,25 +148,22 @@ export default function Starter() {
         });
 
         if (response.status === 200) {
-          const datas = response.data.tasks[0].result[0].items;
-          for (const data of datas) {
-            const { keyword, keyword_difficulty } = data;
-            const existingData = resultsMap.get(keyword) || {};
-            resultsMap.set(keyword, { ...existingData, keyword, keyword_difficulty });
-          }
+          const results = response.data.tasks[0].result[0].items;
+          updateResultsMap(results, ['keyword_difficulty']);
         }
       } catch (error) {
         console.error('Error fetching keyword difficulty:', error.response?.data || error.message);
       }
     };
-
-
+    
+    /* get SUGGESTIONS FOR EACH KEYWORD  */
     const getKeywordSuggestions = async () => {
-      for (const combinationKeyword  of keywords) {
+      const keys = post_array[0].keywords;
+      for (const combinationKeyword  of keys ) {
         const suggestionArray = [
           {
             keyword: combinationKeyword,
-            location_code: parseInt(project.selectedCountry.code),
+            location_code: parseInt(project.locationCode),
             limit : 20,
           },
         ];
@@ -182,30 +189,40 @@ export default function Starter() {
           }
         } catch (error) {
           console.error('Error fetching keyword suggestions:', error.response?.data || error.message);
+          setLoading(false);
         }
       }
     };
+
+
 
     const getAllKeywordData = async () => {
       await searchVolume();
       await getKeywordDifficulty();
       await getKeywordSuggestions();
       // Log final results with suggestions
-      const formattedResults = Array.from(resultsMap.entries()).map(([keyword, data]) => ({
-          keyword,
-          search_volume: data.search_volume || 0,
-          monthlySearch : data.monthly_searches  || 0,
-          keyword_difficulty: data.keyword_difficulty || 0,
-          suggestions: data.suggestions || [], // Log suggestions if present
-        }));
-        setResults(formattedResults);
+      const selectedLocations = [];
+      const formattedResults = Array.from(resultsMap.entries()).map(([keyword, data]) => {
+          return {
+            keyword,
+            location : location ? locations[0] : '' ,
+            search_volume: data.search_volume || 0,
+            monthlySearch : data.monthly_searches  || 0,
+            keyword_difficulty: data.keyword_difficulty || 0,
+            suggestions: data.suggestions || [],
+          }
+        });
+        setResults(formattedResults); 
       };
       await getAllKeywordData();
       setLoading(false);
       router('/results')
-      
   };
 
+
+  const inputUserCss = "w-full border  decoration-sky-500 border-gray-700 rounded-lg pl-12 pr-4 py-3 h-10\
+                  focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none\
+                  transition-all duration-200 backdrop-blur-sm"
   
   return (
     <>
@@ -218,8 +235,8 @@ export default function Starter() {
         </div>
           {/*logo */}   
           </div>
+        {flashMessage ? <FlashMessage message={flashMessage} type={messageType}/> : ''}
       <div className="relative flex flex-col items-center justify-center max-w-4xl mx-auto px-6 py-10  space-y-6">
-         
 
           {/* input of country and location code error */}
          {error && (
@@ -235,19 +252,18 @@ export default function Starter() {
           <div className="relative w-full group mb-5">
                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-400 transition-colors z-10" />
                  <input
-                   type="text"
-                   placeholder="DARAFORSEO Api user"
-                   value={apiCredentials.user}
+                   type={apiCredentials.api_user?.length > 0 ? 'password': 'text'}
+                   placeholder="DATAFORSEO Api user"
+                   value={apiCredentials.api_user}
                    onChange={(e) => {
                     setApiCredentials({
                       ...apiCredentials,
-                      user : e.target.value
+                      api_user : e.target.value
                     })
-               }}
-                   className="w-full border text-gray-900 	border-gray-700 rounded-lg pl-12 pr-4 py-3 h-10
-                             text-gray-100  focus:ring-2 focus:ring-blue-500 
-                             focus:border-transparent outline-none transition-all duration-200
-                             backdrop-blur-sm"
+                  }}
+                  
+                  className={inputUserCss}
+
                  />
           </div>
 
@@ -257,11 +273,11 @@ export default function Starter() {
                  <input
                    type="password"
                    placeholder="DATAFROSEO Api password"
-                   value={apiCredentials.password}
+                   value={apiCredentials.api_password}
                    onChange={(e) => {
                         setApiCredentials({
                           ...apiCredentials,
-                          password : e.target.value
+                          api_password : e.target.value
                         })
                    }}
                    className="w-full border text-gray-900 	border-gray-700 rounded-lg pl-12 pr-4 py-3 h-10
@@ -294,7 +310,13 @@ export default function Starter() {
                   />
                 ))}
               </div>
-      
+           
+          
+          {/*  bacth unput method      */ }
+          
+
+           <LocationsInput suggestions={cities} />
+
           {/* Action button */}
           <button
             onClick={fetchKeywordsInput}
@@ -317,10 +339,9 @@ export default function Starter() {
               </>
             )}
           </button>
-      </div>
+         </div>
         </div>
       </div>
-
     </>
   );
 }

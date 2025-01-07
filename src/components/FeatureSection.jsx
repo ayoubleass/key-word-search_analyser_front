@@ -3,8 +3,8 @@ import { useMainContext } from '../context/MainContext';
 import { useNavigate } from 'react-router-dom';
 
 
-const FeatureSection = () => {
-  const {setShowProjectForm, showProjectForm, showForm} = useMainContext();
+const FeatureSection = ({checkProject}) => {
+  const {setShowProjectForm, showProjectForm, showForm, results} = useMainContext();
   const route = useNavigate();
   
   const css = "relative overflow-hidden py-12 lg:py-16 z-50"
@@ -48,11 +48,11 @@ const FeatureSection = () => {
 
             <div className="flex flex-wrap gap-4">
               <button className="inline-flex items-center cursor-pointer px-6 py-3 text-sm font-semibold text-white bg-[#2e326d] rounded-lg hover:bg-[#16172d] transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                onClick={() => setShowProjectForm(true)}
+                onClick={() => checkProject(results)}
               >
                 Try Analyzer Now
               </button>
-              <button className="inline-flex items-center px-6 py-3 text-sm font-semibold text-[#2e326d] bg-gray-50 rounded-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-300">
+              <button onClick={()=> {route('/about')}} className="inline-flex items-center px-6 py-3 text-sm font-semibold text-[#2e326d] bg-gray-50 rounded-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-300">
                 Learn More
               </button>
             </div>

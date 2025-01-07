@@ -1,7 +1,8 @@
 import { useMainContext } from "../context/MainContext";
-import FlashMessage from "./FlashMessage";
+//import FlashMessage from "./FlashMessage";
 import { useState } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
+import { BASEURL } from "../utils";
 
 const formInputs = [
         {
@@ -26,6 +27,7 @@ export default function ProjectForm (){
       setProject,
       userData,
       setUserData,
+      setStopSave,
     } = useMainContext();
     const [errors, setErrors] = useState({});
     const handleProject = (e) => {
@@ -41,10 +43,12 @@ export default function ProjectForm (){
           setErrors(errors);
         }else {
           setShowProjectForm(false);
+          setProject({
+            ...project,
+          });
+          setStopSave(false);
           navigate('/starter');
-        }
-        console.log(errors);
-        
+        } 
     }
     const inputClass = `appearance-none rounded-xl relative block w-full 
     pl-12 pr-4 py-4 border border-gray-200 placeholder-gray-400 text-gray-900

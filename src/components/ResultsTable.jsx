@@ -15,7 +15,6 @@ const ResultsTable = ({ results, totalKeywords, level }) => {
       </div>
     );
   }
-
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">

@@ -31,16 +31,15 @@ const monthsOfYear = [
 export default function SearchVolumeChart({monthlySearches}) {
   const [labels, setLabels] = useState([]);
   const [searchedData, setSearchedData] = useState([]);
-  const year = monthlySearches[0].year;
+  const year = monthlySearches[0]?.year;
 
   useEffect(() => {
-    const newData  =  monthlySearches.map((f) => {  
-      console.log(f.month);
+    const newData  =  monthlySearches?.map((f) => {  
       const data = {}
       data[monthsOfYear[f.month - 1]] = f.search_volume
       return data
     });
-    const dataValues = monthsOfYear.map((e) => {
+    const dataValues = monthsOfYear?.map((e) => {
         let searchv;
         newData.map((item) => {
           if (Object.keys(item)[0] === e) {

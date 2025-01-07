@@ -24,7 +24,7 @@ const Input = ({ index, value, handleChange, onAdd, onRemove, isLast, disabled }
      <span className="info absolute right-12 top-5 -translate-y-1/2 text-gray-500 cursor-pointer z-50">
                 ?
                 <span className="tooltip absolute  mt-2 h-15 w-64 bg-gray-900 text-white text-sm rounded-md shadow-lg p-2 hidden z-50">
-                  Saisissez le mot clé plus localité ici.
+                  Please insert the keyword with no location.
                 </span>
       </span>
     <div className="flex space-x-2">

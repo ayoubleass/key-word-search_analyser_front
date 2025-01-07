@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import FlashMessage from './FlashMessage';
 import { useMainContext } from '../context/MainContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import { BASEURL } from '../utils';
+import { getStorageItem } from '../utils';
 const STATES = ['login', 'forgotPassword', 'signUp', 'resetPassword'];
-const BASEURL = "http://localhost:3000/api/v1";
+
 
 
 const formInputs = {
@@ -96,23 +97,32 @@ const Form = ({myState = 'login'}) => {
       setMessageType,
       setShowForm,
       showForm,
+      setApiCredentials,
       setInProcess,
       setToken,
       token,
       inProcess,
       userData,
-      setUserData
+      setUserData,
+      state,
+      setStates
     } = useMainContext();
-    const [state, setStates] = useState(myState);
-    const [oldState, setOldState] = useState('');
     const [errors, setErrors] = useState({});
     const [error, setError] = useState([]);
+    const url = useLocation(); 
+    const queryParameters = new URLSearchParams(url.search);
 
+    useEffect(() => {
+        if (queryParameters.get('id')&& queryParameters.get('token')) {
+            setStates(STATES[3]);
+        }
+    },[url.search]);
 
-    const handleLogin = async (e) => {
+    const handleLogin = async () => {
+        setInProcess(true);
         const encodedData = btoa(`${userData.email}:${userData.password}`);
         try {
-            const res = await fetch("http://localhost:3000/api/v1/login", {
+            const res = await fetch(`${BASEURL}/login`, {
                 method : 'POST',
                 headers : {
                     Accept : 'application/json',
@@ -121,8 +131,14 @@ const Form = ({myState = 'login'}) => {
             })
             const data = await res.json();
             if (res.ok) {
-                setToken(data.token);
-                setUserData(data.userData);
+                localStorage.setItem('token', JSON.stringify(data.token));
+                localStorage.setItem('userData', JSON.stringify(data.userData));
+                setToken(getStorageItem('token'));
+                setUserData(getStorageItem('userData'));
+                setApiCredentials(getStorageItem('userData').Profile || {
+                    api_user: "",
+                    password: ""
+                });
                 setFlashMessage(`Welcome ${data?.userData?.name}`);
                 setMessageType('success');
                 setShowForm(false);
@@ -139,6 +155,9 @@ const Form = ({myState = 'login'}) => {
             setInProcess(false);
         }catch (err){
             console.log(err);
+            setFlashMessage('Something went wrong !!!');
+            setMessageType('error');
+            setInProcess(false);
         }
     }
   
@@ -179,8 +198,9 @@ const Form = ({myState = 'login'}) => {
             const data = await res.json();
             if (res.ok) {
                 setFlashMessage(data?.message);
-                setMessageType('success')
-                setErrors();
+                setStates(STATES[0]);
+                setMessageType('success');
+                setErrors({});
             }else{
                 errors.email = [data.error];
                 setErrors(errors);
@@ -193,12 +213,6 @@ const Form = ({myState = 'login'}) => {
 
     const handleCreateAccount =  async (e) => {
         setInProcess(true);
-        const form = e.target;
-        const formData = new FormData(form);
-        const email = formData.get('email');
-        const name = formData.get('name');
-        const phoneNumber = formData.get('phoneNumber');
-        const password = formData.get('password');
         try {
             const res = await fetch(`${BASEURL}/signUp`, {
                 method : 'POST',
@@ -206,7 +220,7 @@ const Form = ({myState = 'login'}) => {
                     Accept : "application/json",
                     "Content-Type": "application/json", 
                 },
-                body : JSON.stringify({email, password, name, phoneNumber}),
+                body : JSON.stringify({...userData}),
             });
             const data = await res.json(); 
             if (res.ok) {
@@ -227,20 +241,19 @@ const Form = ({myState = 'login'}) => {
             setInProcess(false);
         }catch (err) {
             console.log(err);
+            setFlashMessage('Something went wrong !!!');
+            setMessageType('error');
             setInProcess(false);
         }
     } 
 
 
     const handleResetPassword = async (e) => {
-        const queryParameters = new URLSearchParams(window.location.search);
-        const form = e.target;
-        const formData = new FormData(form);
         const resetToken = queryParameters.get('token');
         const id = queryParameters.get('id');
-        const password = formData.get('confirmation');
-        const confirmation = formData.get('password');
-    
+        const password = userData.password;
+        const confirmation = userData.confirmation;
+
         if(password !== confirmation) {
             setError('password must match the confirmation');
             setInProcess(false);
@@ -254,16 +267,18 @@ const Form = ({myState = 'login'}) => {
                         "Content-Type": "application/json", 
                     },
                     body : JSON.stringify({password, id, resetToken}),
-                })
-
+                });
                 const data = await res.json();
                 if (res.ok) {
-                    setFlashMessage(data.message);
-                    setMessageType('succes');
-                    setShowForm(false);
                     navigate('/');
+                    setUserData({});
+                    setFlashMessage(data.message);
+                    setMessageType('success');
+                    setShowForm(false);
+                    setStates(STATES[0]);
                 }else{
-                    setErrors(data.errors);
+                    setErrors(data.errors || {});
+                    setError(data.error);
                 }
                 setInProcess(false);
             }catch (err) {
@@ -272,23 +287,17 @@ const Form = ({myState = 'login'}) => {
         }
 
     }
-    useEffect(() => {
-        if(state == STATES[3] && !queryParameters.get('id') && state == STATES[3] && !queryParameters.get('token')) {
-            setStates(STATES[0]);
-        }
-    })
 
+    const inputClass = `appearance-none rounded-xl relative block w-full 
+        pl-12 pr-4 py-4 border border-gray-200 placeholder-gray-400 text-gray-900
+        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+        focus:z-10 sm:text-sm transition-all duration-200 bg-white/50 backdrop-blur-sm`
 
-const inputClass = `appearance-none rounded-xl relative block w-full 
-    pl-12 pr-4 py-4 border border-gray-200 placeholder-gray-400 text-gray-900
-    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-    focus:z-10 sm:text-sm transition-all duration-200 bg-white/50 backdrop-blur-sm`
-
-// Calculate additional height based on errors
-const hasErrors = Object.keys(errors).length > 0 || error;
-const formContainerClass = `lg:w-2/6 sm:w-1/2 md:w-1/2 m-auto bg-white/90 backdrop-blur-md 
-    py-12 px-8 rounded-2xl relative shadow-xl transition-all duration-300 ease-in-out 
-    ${hasErrors ? 'max-h-[120vh]' : 'max-h-[90vh]'}`
+    // Calculate additional height based on errors
+    const hasErrors = Object.keys(errors)?.length > 0 || error;
+    const formContainerClass = `lg:w-2/6 sm:w-1/2 md:w-1/2 m-auto bg-white/90 backdrop-blur-md 
+        py-12 px-8 rounded-2xl relative shadow-xl transition-all duration-300 ease-in-out 
+        ${hasErrors ? 'max-h-[120vh]' : 'max-h-[90vh]'}`
 
 return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 mb-3 min-h-screen py-10 overflow-y-scroll	">
@@ -304,6 +313,9 @@ return (
                 </p>
                 </div>
             )}
+            {flashMessage && state == STATES[1]  || flashMessage && state == STATES[2] ?
+                <FlashMessage message={flashMessage} type={messageType}/>
+                : ''}
             <div className={`max-w-md w-full mx-auto space-y-6 ${hasErrors ? 'mt-4' : ''}`}>
                 <h2 className="mt-2 text-center text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                     {formText[state]?.title}
@@ -325,12 +337,13 @@ return (
                             <input
                                 type={f.type}
                                 name={f.name}
-                                id={index}
+                                id={f.name}
                                 className={
                                     Object.entries(errors || {}).length > 0 && errors[f.name]?.length > 0 
                                     ? `${inputClass} border-red-300 bg-red-50 text-red-900 placeholder-red-400`
                                     : inputClass
                                 }
+                                value={userData[f.name]}
                                 placeholder={f.label}
                                 disabled={inProcess}
                                 onChange={ (e) => {
@@ -367,12 +380,11 @@ return (
                         </div>
                     )}
                     <div className="text-sm" onClick={() => {
-                        setOldState(state);
                         setErrors({});
                         setStates(STATES[1]);
                     }}>
-                        <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
-                            {state !== STATES[1] && state !== STATES[3] ? 'Forgot your password?' : ''}
+                        <a className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                            {state !== STATES[1] || state !== STATES[3] ? 'Forgot your password?' : ''}
                         </a>
                     </div>
                 </div>
@@ -393,11 +405,10 @@ return (
 
                     {state !== STATES[3] && (
                         <div className="text-sm mt-4 text-center" onClick={() => {
-                            setOldState(state);
                             setErrors({});
                             setStates(state === STATES[0] ? 'signUp' : STATES[0]);
                         }}>
-                            <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                            <a className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
                                 {state !== 'signUp' ? 'Sign Up' : 'Sign In'}
                             </a>
                         </div>
@@ -408,4 +419,6 @@ return (
     </div>
     );
 };
+
+
 export default Form;

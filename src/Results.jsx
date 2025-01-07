@@ -1,20 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useNavigation } from 'react-router-dom';
 import { useMainContext } from './context/MainContext';
-
 import { 
   Download,
   Save,
-  Building2,
   Loader2,
-  Link,
-  Edit
+  Edit,
+  House
 } from 'lucide-react';
 import ResultsTable from "./components/ResultsTable";
-import Header from "./components/Header";
 import BusinessInfo from "./components/BusinessInfo";
 import Form from './components/Form';
-import { handleCreateProject, handleCreateResults } from "./utils";
+import { handleCreateProject, handleCreateResults , handleUpdateProject, BASEURL} from "./utils";
+import FlashMessage from "./components/FlashMessage";
+
 // Helper functions
 const calculateTotalKeywords = (results) => results?.length || 0;
 
@@ -152,32 +151,36 @@ const ActionButtons = ({ handleUpadates , isLoading , onDownload, onSave, disabl
   </div>
 );
 
-
-
-
-
 export default function Results() {
   const {
     project,
+    setProject,
     results,
+    setResults,
     token,
     setToken,
     showForm,
     setShowForm,
-    setStopsave,
-    stopSave
-  } = useMainContext(); 
+    flashMessage,
+    setFlashMessage,
+    setMessageType,
+    stopSave,
+    setStopSave,
+    messageType
+  } = useMainContext();
+
+
   const [isLoading, setIsLoading] = useState(false);
   const router = useNavigate();
   const totalKeywords = calculateTotalKeywords(results);
   const level = determineLevel(totalKeywords);
-
   useEffect(() => {
-      if(token && !showForm) {
-        //handleSave();
-      }
-  }, [showForm]);
-  
+        if(flashMessage){
+            setTimeout(() => {
+                setFlashMessage(null);  
+            }, 2000);
+        }
+    }, [flashMessage])
 
   const handleDownloadCSV = () => {
       try {
@@ -198,27 +201,57 @@ export default function Results() {
   };
 
   const handleSave = async () => {
+    setIsLoading(true);
     if(!token) {
         setShowForm(true);
         if (!project) {
+          setIsLoading(false);
           router('/');  
         }
     }else{
-      setIsLoading(true);
-      const newProject = await handleCreateProject(project, token, setToken);
+      const newProject = await handleCreateProject(project, token, setToken, setFlashMessage, setMessageType);
+      setProject(newProject)
       if (newProject) {
-        const newResults = await handleCreateResults(results, newProject.id, token);
-        //setOldResults(newResults);
+        const newResults = await handleCreateResults(results, newProject.id, token, setFlashMessage, setMessageType); 
+        console.log(newResults);     
+        if(newResults && newResults.length > 0) {
+          setStopSave(true);
+        }else{
+          setFlashMessage('Oups something went wrong!!')
+          setMessageType('error')
+        }
       }
-      setIsLoading(false)
-      setStopsave(true)
     }
+    setIsLoading(false);
 
   };
-  const handleUpadates = async () => {
-     alert("dzdazdazdazda");
 
+  const handleUpadates = async () => {
+    setIsLoading(true)
+    const url = `${BASEURL}/projects/${project.id}/results`;
+    const newProject = await handleUpdateProject(project, token, setFlashMessage, setMessageType);
+    try {
+        const res = await fetch(url, {
+          method: 'PUT',
+          headers : {
+            'content-type': "application/json",
+            Accept : 'application/json',
+            'X-Token': token,
+          },
+          body : JSON.stringify(results)
+        });
+        const data = await res.json();
+        if(res.ok) {
+          setFlashMessage("Record was updated succesfully");
+          setMessageType('success');
+          setResults(data.results);
+        }
+        setIsLoading(false);
+    }catch (err) {
+      console.log(err);
+    }
   }
+
 
   return(
   <>
@@ -230,11 +263,21 @@ export default function Results() {
               onClick={() =>router('/starter')}>
               <i className='fa-solid fa-arrow-left'></i> Back
           </div>
-          <div className="flex gap-2 items-center hover:text-blue-400 transition-colors duration-200"
-              onClick={() =>router('/starter')}>
-             <Edit/> Edit
+          <div className="flex items-center gap-3">
+            <div className="flex gap-2 items-center border-solid	border-2 border-white py-2 px-5 rounded hover:bg-white hover:text-gray-900 transition-colors duration-200"
+                onClick={() =>router('/')}>
+                <House className="h-5 w-5" />
+                Home
+            </div>
+            <div className="flex gap-2 items-center bg-red-500 rounded py-2 px-5 hover:text-red-900 transition-colors duration-200"
+                onClick={() =>router('/starter')}>
+              <Edit className="h-5 w-5"  /> Edit
+            </div>
           </div>
         </div>
+
+
+        {flashMessage ? <FlashMessage message={flashMessage} type={messageType}/> : ''}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <BusinessInfo name={project?.data?.name || project?.name } project={project}  />
 
@@ -242,7 +285,7 @@ export default function Results() {
           <div className="flex justify-end items-center bg-gray-800/50 p-6 rounded-lg 
                       backdrop-blur-sm border border-gray-700 shadow-lg">
             <ActionButtons
-             handleUpadates={handleUpadates}
+              handleUpadates={handleUpadates}
               isLoading={isLoading}
               onDownload={handleDownloadCSV}
               onSave={handleSave}
@@ -261,7 +304,7 @@ export default function Results() {
         />
       </div>
       </div>
-    </div>
+  </div>
 
     {showForm ?  <Form myState={'login'} /> : ''}
   </>

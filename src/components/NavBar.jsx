@@ -1,20 +1,19 @@
 import { useMainContext } from '../context/MainContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import image from '../assets/images/image.webp'
-import { Menu, X } from 'lucide-react';
+import logo from '../assets/images/logo.png'
 
 export default function NavBar ()  {
     const navigate = useNavigate();
     const location = useLocation();
-    const {showForm, setShowForm, token, setToken, userData} = useMainContext();
+    const {showForm, setShowForm, token, setToken, userData ,setUserData, setApiCredentials} = useMainContext();
     const [isOpen, setIsOpen] = useState(false);
      const links = [
         {
             name: 'Home',
             incone: '',
             action : () => navigate('/'),
-            cssClasses : location.pathname  === '/' && !showForm ? 'font-bold bg-white text-black px-5 py-2 rounded z-50 ' : 'text-white',
+            cssClasses : location.pathname  === '/' && !showForm ? 'font-bold bg-white px-5 py-2 rounded z-50 ' : 'text-white',
             path : '/'
         },
         {
@@ -28,11 +27,29 @@ export default function NavBar ()  {
             icon : '',
             action: () => navigate('/'.concat(`${userData.name}/projects`), { replace: true }),
             cssClasses : !token ?  'hidden' : 'opacity-1 cursor-pointer text-white'  
-        },
+        },{
+          name : 'Profile',
+          icon : '',
+          action : () =>  {
+            navigate('/profile')
+          },
+          cssClasses : token
+          ? location.pathname === '/profile'
+            ? 'font-bold bg-white text-black px-5 py-2 rounded z-50 '
+            : 'text-white'
+          : 'hidden'
+       },
         {
             name : 'Logout',
             icon : '',
-            action : () =>  setToken(''),
+            action : () =>  {
+              localStorage.removeItem('token');
+              localStorage.removeItem('userData');
+              setToken('');
+              setUserData({});
+              setApiCredentials({});
+              navigate('/');
+            },
             cssClasses : token ?  'opacity-1 cursor-pointer text-white' : 'hidden '
         },
       
@@ -44,11 +61,11 @@ export default function NavBar ()  {
         <div className="flex justify-between items-center h-[15vh]">
           {/* Logo Section */}
           <div className="flex-shrink-0">
-            {!showForm && image && (
+            {!showForm && logo && (
               <img 
-              src={image} 
+              src={logo} 
               alt="Logo"
-              className="w-32 sm:w-40 lg:w-48"
+              className="w-20 h-16 sm:w-40 lg:w-20"
             />
             )}
           </div>
@@ -59,7 +76,8 @@ export default function NavBar ()  {
               (link.name !== 'Connexion' || !token) && (
                 <li 
                   key={index} 
-                  className={`${link.cssClasses} hover:text-gray-600 transition-colors duration-200`}
+                  className={`${link.cssClasses} hover:text-gray-600 transition-colors duration-200`
+                }
                   onClick={() => link.action()}
                 >
                   <a className="text-sm font-medium cursor-pointer">{link.name}</a>
@@ -94,7 +112,7 @@ export default function NavBar ()  {
               (link.name !== 'Connexion' || !token) && (
                 <li 
                   key={index}
-                  className={`${link.cssClasses} block`}
+                  className={`hover:text-gray-600 transition-colors duration-200 block`}
                   onClick={() => {
                     link.action();
                     setIsMenuOpen(false);
@@ -115,6 +133,4 @@ export default function NavBar ()  {
     </nav>
   );
   
-
-
 }

@@ -1,19 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapPin, Globe, Building2 } from 'lucide-react';
 import languageData from '../../dataForSeo';
+import { useMainContext } from '../context/MainContext';
 
 const LanguageSelector = ({ onWebsiteChange, project }) => {
-  // Get unique list of languages from languageData
   const languages = Object.keys(languageData).sort();
 
-  // Get countries for selected language
   const countries = project.selectedLanguage
     ? languageData[project.selectedLanguage].countries
     : [];
 
-  const country = countries.find((c) => (code) =>  project.locationCode.toString() == c.code);
-  console.log(country);
+  const [country, setCountry] = useState(countries.find((c) =>  project?.locationCode?.toString() ===  c.code));
+  useEffect(() => {
+    if (project.selectedCountry?.code) {
+      setCountry(project.selectedCountry);
+      onWebsiteChange({
+        ...project,
+        locationCode: country?.code || project.selectedCountry.code
+      })
+    }
+  }, [country, project.selectedCountry]);
+
   
+
   return (
     <div className="space-y-6 w-full text-black">
       {/* Website URL input */}
@@ -65,10 +74,10 @@ const LanguageSelector = ({ onWebsiteChange, project }) => {
         <div className="relative w-full group">
           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-400 transition-colors z-10" />
           <select
-            value={project.selectedCountry ? JSON.stringify(project.selectedCountry) : JSON.stringify(country)}
+            value={!country ? JSON.stringify(project.selectedCountry) : JSON.stringify(country)}
             onChange={(e) => onWebsiteChange({
               ...project,
-              selectedCountry : JSON.parse(e.target.value)
+              selectedCountry : e.target.value ? JSON.parse(e.target.value) : country.name,
             })}
             disabled={!project.selectedLanguage}
             className="w-full border text-gray-500 border-gray-700 rounded-lg pl-12 pr-4 h-10
